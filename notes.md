@@ -167,6 +167,42 @@ organizational structure, the opposite mistake from the supplier case.
 Single consistent `D/M/YYYY` string format (e.g. `6/9/2021`), zero parse
 failures with `dayfirst=True`. No mixed formats, no free text.
 
+## Cleaning verification (step 3 self-check)
+
+Ran `clean_pipeline` (src/cleaning.py) over the raw data and checked the
+results before trusting them for analysis:
+
+- **Row count**: 18,464 -> 17,825 after `drop_invalid` (639 "Awarded to No
+  Suppliers" rows removed, matching the count found during exploration
+  exactly — no unexpected extra drops).
+- **Supplier count**: 6,152 raw distinct spellings -> 6,144 after
+  `normalize_supplier` — a reduction of only 8 names across 7 merged groups.
+  This is intentionally small: the rule only fixes punctuation/case/suffix
+  spelling, so it should *not* collapse a large fraction of the supplier
+  list. A big drop would have been a red flag for an overly aggressive rule.
+- **Manually checked all 7 merged groups** (not just a sample, since there
+  were only 7) — every one is a genuine formatting duplicate of the same
+  entity, e.g. `Advancedata Network Sdn Bhd` / `ADVANCEDATA NETWORK SDN.
+  BHD.`, `BAHWAN CYBERTEK PTE. LTD.` / `BAHWAN CYBERTEK PRIVATE LIMITED`,
+  `SUEZ (SINGAPORE) SERVICES  PTE. LTD.` (double space) / `SUEZ (SINGAPORE)
+  SERVICES PTE. LTD.`. None of the 7 merges combine different entities.
+- **Re-checked the known-tricky cases from earlier**: `ACCENTURE PTE LTD`
+  and `ACCENTURE SG SERVICES PTE LTD` are still two separate normalized
+  names after cleaning (correct — they're different entities), and the
+  three unrelated "NCS" companies (`NCS PTE LTD`, `NCS COMMUNICATIONS
+  ENGINEERING PTE LTD`, `NCS PEARSON INC`) also remain three separate names.
+- **Spot-checked 20 random raw/normalized name pairs** beyond the merged
+  groups — all reasonable (suffix punctuation stripped, case unified,
+  individual/no-suffix names left structurally alone as intended, e.g.
+  `Suhail Jindran` -> `SUHAIL JINDRAN`, `nPlan Limited` -> `NPLAN LIMITED`).
+
+**Conclusion**: the normalization is conservative by design — it trades a
+smaller reduction in supplier count for confidence that no two distinct
+companies got merged. Any concentration metric computed downstream should
+therefore be read as a **lower bound** on true concentration (some
+formatting variants I didn't catch, e.g. typos, may still be splitting a
+supplier's awards across two name strings), not an upper bound.
+
 ## Encoding
 
 No non-ASCII characters found in `supplier_name` (checked all rows) — the
