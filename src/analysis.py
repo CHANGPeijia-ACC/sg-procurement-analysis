@@ -224,11 +224,27 @@ def benford_mad(series: pd.Series, digits: int = 1, min_amount: float = 10.0) ->
             "chi2": float(chi2), "p_value": float(p_value), "table": table}
 
 
+def benford_simulated_p(mad: float, n: int, digits: int = 1, n_sims: int = 10_000, seed: int = 0) -> tuple[float, float]:
+    """Size-adjusted check of a MAD value.
+
+    Draws n_sims samples of size n exactly from Benford proportions. Returns
+    the share of them with MAD >= mad, as (k + 1) / (n_sims + 1), and their
+    median MAD. Needed because small samples have large MADs even when they
+    follow Benford's law, which the fixed Nigrini bands do not allow for.
+    """
+    p = benford_expected(digits).to_numpy()
+    rng = np.random.default_rng(seed)
+    sims = np.abs(rng.multinomial(n, p, size=n_sims) / n - p).mean(axis=1)
+    return float((np.sum(sims >= mad) + 1) / (n_sims + 1)), float(np.median(sims))
+
+
 def benford_by_agency(df: pd.DataFrame, min_rows: int = 300, min_amount: float = 10.0,
                       value_col: str = "awarded_amt", agency_col: str = "agency") -> pd.DataFrame:
     """First-digit and first-two-digit Benford tests per agency, sorted by first-digit MAD (largest first).
 
     Only agencies with at least min_rows values >= min_amount are tested.
+    sim_p_* is the size-adjusted check from benford_simulated_p; mad_*_if_benford
+    is the median MAD of exact-Benford samples of the same size.
     """
     kept = df[pd.to_numeric(df[value_col], errors="coerce") >= min_amount]
     counts = kept[agency_col].value_counts()
@@ -238,7 +254,9 @@ def benford_by_agency(df: pd.DataFrame, min_rows: int = 300, min_amount: float =
         row = {agency_col: agency, "n": len(values)}
         for digits in (1, 2):
             r = benford_mad(values, digits, min_amount)
-            row.update({f"mad_{digits}": r["mad"], f"band_{digits}": r["band"], f"p_{digits}": r["p_value"]})
+            sim_p, typical = benford_simulated_p(r["mad"], r["n"], digits)
+            row.update({f"mad_{digits}": r["mad"], f"mad_{digits}_if_benford": typical, f"band_{digits}": r["band"],
+                        f"p_{digits}": r["p_value"], f"sim_p_{digits}": sim_p})
         rows.append(row)
     return pd.DataFrame(rows).sort_values("mad_1", ascending=False).reset_index(drop=True)
 
