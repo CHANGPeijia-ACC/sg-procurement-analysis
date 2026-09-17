@@ -224,6 +224,25 @@ def benford_mad(series: pd.Series, digits: int = 1, min_amount: float = 10.0) ->
             "chi2": float(chi2), "p_value": float(p_value), "table": table}
 
 
+def benford_by_agency(df: pd.DataFrame, min_rows: int = 300, min_amount: float = 10.0,
+                      value_col: str = "awarded_amt", agency_col: str = "agency") -> pd.DataFrame:
+    """First-digit and first-two-digit Benford tests per agency, sorted by first-digit MAD (largest first).
+
+    Only agencies with at least min_rows values >= min_amount are tested.
+    """
+    kept = df[pd.to_numeric(df[value_col], errors="coerce") >= min_amount]
+    counts = kept[agency_col].value_counts()
+    rows = []
+    for agency in counts[counts >= min_rows].index:
+        values = kept.loc[kept[agency_col] == agency, value_col]
+        row = {agency_col: agency, "n": len(values)}
+        for digits in (1, 2):
+            r = benford_mad(values, digits, min_amount)
+            row.update({f"mad_{digits}": r["mad"], f"band_{digits}": r["band"], f"p_{digits}": r["p_value"]})
+        rows.append(row)
+    return pd.DataFrame(rows).sort_values("mad_1", ascending=False).reset_index(drop=True)
+
+
 # ---------------------------------------------------------------------------
 # 4.4 Supplier profile & trend
 # ---------------------------------------------------------------------------
