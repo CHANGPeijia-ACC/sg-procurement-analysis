@@ -12,8 +12,7 @@ import pandas as pd
 
 from analysis import (
     aggregate_by_tender,
-    benford_test,
-    BENFORD_EXPECTED,
+    benford_mad,
     concentration_by_group,
     threshold_window_counts,
     top_suppliers,
@@ -85,24 +84,41 @@ def fig_threshold_zoom(df: pd.DataFrame, threshold: float = 90000, lo: float = 8
     plt.close(fig)
 
 
-def fig_benford(df: pd.DataFrame, min_amount: float = 1000) -> None:
-    result = benford_test(df["awarded_amt"], min_amount=min_amount)
-    digits = list(range(1, 10))
-    observed = [result["observed_pct"][d] for d in digits]
-    expected = [BENFORD_EXPECTED[d] * 100 for d in digits]
+def _benford_title(label: str, r: dict) -> str:
+    return (f"{label} vs. Benford's law, row level, amounts >= S${r['min_amount']:,.0f} (n = {r['n']:,})\n"
+            f"MAD {r['mad']:.5f} (Nigrini band: {r['band']}), chi-square p = {r['p_value']:.3g}")
 
+
+def fig_benford(df: pd.DataFrame, min_amount: float = 10) -> None:
+    r = benford_mad(df["awarded_amt"], digits=1, min_amount=min_amount)
+    t = r["table"]
     fig, ax = plt.subplots()
     width = 0.38
-    x = np.arange(1, 10)
-    ax.bar(x - width / 2, observed, width, label="Observed", color="#2563eb")
-    ax.bar(x + width / 2, expected, width, label="Benford (expected)", color="#94a3b8")
+    x = t.index.to_numpy()
+    ax.bar(x - width / 2, t["observed"] * 100, width, label="Observed", color="#2563eb")
+    ax.bar(x + width / 2, t["expected"] * 100, width, label="Benford (expected)", color="#94a3b8")
     ax.set_xticks(x)
-    ax.set_xlabel("Leading digit")
+    ax.set_xlabel("First digit")
     ax.set_ylabel("% of awards")
-    ax.set_title(f"Leading-digit distribution vs. Benford's law (amounts > S${min_amount:,.0f}, n={result['n']:,})\n"
-                 f"chi2={result['chi2']:.1f}, p={result['p_value']:.3f}")
+    ax.set_title(_benford_title("First digit", r), fontsize=10)
     ax.legend()
     fig.savefig(FIG_DIR / "benford_test.png")
+    plt.close(fig)
+
+
+def fig_benford_two_digits(df: pd.DataFrame, min_amount: float = 10) -> None:
+    r = benford_mad(df["awarded_amt"], digits=2, min_amount=min_amount)
+    t = r["table"]
+    fig, ax = plt.subplots(figsize=(11, 5))
+    ax.bar(t.index, t["observed"] * 100, width=0.8, label="Observed", color="#2563eb")
+    ax.plot(t.index, t["expected"] * 100, color="#dc2626", linewidth=1.5, label="Benford (expected)")
+    ax.set_xticks(np.arange(10, 100, 10))
+    ax.set_xlim(9, 100)
+    ax.set_xlabel("First two digits")
+    ax.set_ylabel("% of awards")
+    ax.set_title(_benford_title("First two digits", r), fontsize=10)
+    ax.legend()
+    fig.savefig(FIG_DIR / "benford_two_digits.png")
     plt.close(fig)
 
 
@@ -141,7 +157,8 @@ if __name__ == "__main__":
     fig_concentration(df)
     fig_amount_distribution(df)
     fig_threshold_zoom(df)
-    fig_benford(df, min_amount=1000)
+    fig_benford(df)
+    fig_benford_two_digits(df)
     fig_yearly_trend(df)
     fig_top_suppliers(df)
     print(f"Figures written to {FIG_DIR}")
