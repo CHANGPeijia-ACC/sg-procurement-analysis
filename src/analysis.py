@@ -104,20 +104,26 @@ def aggregate_by_tender(df: pd.DataFrame) -> pd.DataFrame:
 def threshold_window_counts(
     df: pd.DataFrame, thresholds: list[float], window_pct: float = 0.10, value_col: str = "awarded_amt"
 ) -> pd.DataFrame:
-    """Count awards just below vs. just above each threshold, within +/- window_pct."""
+    """Count awards just below vs. just above each threshold, within +/- window_pct.
+
+    An amount exactly at the threshold counts as above. p_more_below is a
+    one-sided binomial test of "more below than above" against a 50/50 split.
+    """
     rows = []
     amounts = df[value_col]
     for t in thresholds:
         lo, hi = t * (1 - window_pct), t * (1 + window_pct)
-        below = ((amounts >= lo) & (amounts < t)).sum()
-        above = ((amounts >= t) & (amounts <= hi)).sum()
+        below = int(((amounts >= lo) & (amounts < t)).sum())
+        above = int(((amounts >= t) & (amounts <= hi)).sum())
+        n = below + above
         rows.append(
             {
                 "threshold": t,
                 "window_pct": window_pct,
-                "n_just_below": int(below),
-                "n_just_above": int(above),
+                "n_just_below": below,
+                "n_just_above": above,
                 "ratio_below_over_above": (below / above) if above else np.nan,
+                "p_more_below": stats.binomtest(below, n, 0.5, alternative="greater").pvalue if n else np.nan,
             }
         )
     return pd.DataFrame(rows)
