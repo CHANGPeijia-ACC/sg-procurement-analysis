@@ -25,10 +25,12 @@ The data contains only open tenders, so it could not show avoidance of open tend
 
 ![Awards near the S$90,000 threshold, row level and tender level](outputs/figures/threshold_zoom_90000.png)
 
-**3. Benford's law holds for the bulk of awards, but only once very small amounts are excluded.**
-The full dataset fails a Benford chi-square test (p < 0.0001), but that's mostly driven by thousands of small, often round-numbered line items under S$1,000 — not the kind of data Benford's law is meant to model. Excluding those, the leading-digit distribution fits Benford closely (p = 0.12).
+**3. Award amounts of S$10 or more follow Benford's law closely overall; 8 of 18 agencies deviate more than their sample size explains.**
+Across 16,057 row-level amounts of at least S$10, the first-digit MAD is 0.00221 and the first-two-digit MAD is 0.00086, both in Nigrini's "close" band; an S$1,000 floor and tender totals give the same bands. Without a floor the first-digit MAD rises to 0.01092, and 1,294 awards are recorded at exactly S$1. At agency level (18 agencies with at least 300 amounts), fixed MAD bands mislabel small samples, so each agency was compared with simulated Benford samples of the same size: 7 agencies deviate on the first digit and 6 on the first two digits at p < 0.05, 8 on either, against about one per test expected by chance (18 × 0.05). The table is in [`outputs/benford_by_agency.csv`](outputs/benford_by_agency.csv). These are screening signals, not findings about the agencies.
 
-![Leading digit vs Benford's law](outputs/figures/benford_test.png)
+![First digit vs Benford's law](outputs/figures/benford_test.png)
+
+![First two digits vs Benford's law](outputs/figures/benford_two_digits.png)
 
 **4. The 10 largest suppliers by dollar value are all construction/engineering firms**, each with only 2–19 awards but S$1.4B–S$3.5B in cumulative value — consistent with a handful of infrastructure megaprojects dominating total spend, not systemic favoritism across procurement in general.
 
@@ -55,11 +57,13 @@ Full investigation and reasoning: [`notes.md`](notes.md). Summary of what `src/c
 
 - **Concentration (HHI + CR4)**: computed per-agency, amount-weighted (not by award count), since one large contract represents more market power than many small ones. Reported alongside count-weighted numbers where they diverge — the two can tell different stories about the same agency.
 - **Threshold test**: awards are summed per `tender_no`, the unit the rule applies to, then counted just below and just above S$90,000 in ±10%/±5%/±2% windows, with a one-sided binomial test against a 50/50 split. Award counts fall as amounts grow and round numbers can attract awards, so the same test is run at placebo thresholds (S$70k, 80k, 85k, 95k, 100k, 110k, 120k); S$90,000 is only notable if it stands out from them. The S$6,000 small-value-purchase limit is not tested: the data has no small value purchases or quotations, and an older undated GeBIZ guide gives a lower limit of S$3,000, so the limit in force across FY2021–FY2025 is not confirmed. Current thresholds: [MOF](https://www.mof.gov.sg/policies/government-procurement/understanding-the-procurement-process).
-- **Benford's law**: chi-square goodness-of-fit test on leading digits, tested at several minimum-amount floors (S$0 / S$1,000 / S$6,000 / S$10,000) rather than a single arbitrary cutoff, since the law is not expected to hold for small, often-round-numbered transactions.
+- **Benford's law**: first-digit (1–9) and first-two-digit (10–99) tests on row-level amounts of at least S$10, with an S$1,000 floor and tender totals as checks. Each test reports the mean absolute deviation (MAD) with the Nigrini (2012) conformity bands, and a chi-square test. For a deviation of the same size, the chi-square statistic grows in proportion to the number of amounts, so with 16,057 amounts it rejects departures too small to matter (two-digit test: p = 5.4e-08 while MAD is in the "close" band). MAD does not grow with sample size, but its fixed bands are too strict for small samples: in simulation, samples of 600 amounts drawn exactly from Benford proportions fall in the two-digit nonconformity band every time. Agencies are therefore also judged by a simulated p-value, the share of 10,000 exact-Benford samples of the same size with a MAD at least as large.
 
 ## What I corrected
 
 The first version counted individual award rows and read the excess just below S$90,000 as consistent with avoiding open tender. The rule applies to a whole procurement and every award in this dataset already came from a tender, so the test was redone at tender level, where the excess is not present.
+
+The Benford finding previously attributed the failure on the full dataset to small, often round-numbered line items under S$1,000; round numbers were never measured. Raising the floor to S$10, which removes 1,764 amounts including 1,294 of exactly S$1, is enough to bring the first-digit test into Nigrini's "close" band.
 
 ## Limitations
 
