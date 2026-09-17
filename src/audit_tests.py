@@ -8,6 +8,9 @@ from __future__ import annotations
 
 import pandas as pd
 
+from analysis import concentration_by_group
+from categories import OTHER, classify_descriptions
+
 INCUMBENT_MIN_YEARS = 4
 INCUMBENT_MIN_SHARE = 0.10
 
@@ -72,3 +75,21 @@ def incumbency(
     pairs["share_of_agency"] = (pairs["awarded_amt"] / agency_total).where(agency_total > 0, 0.0)
     pairs["flagged"] = (pairs["years"] >= min_years) & (pairs["share_of_agency"] >= min_share)
     return pairs.sort_values(["flagged", "share_of_agency"], ascending=False).reset_index(drop=True)
+
+
+def with_category(df: pd.DataFrame) -> pd.DataFrame:
+    """Copy of df with a category column from the keyword classification of tender_description."""
+    out = df.copy()
+    out["category"] = classify_descriptions(out["tender_description"])["category"].to_numpy()
+    return out
+
+
+def category_concentration(df: pd.DataFrame, min_rows: int = 10) -> pd.DataFrame:
+    """Amount-weighted HHI and CR4 per agency x category.
+
+    Uses ETT rows only and leaves out "other", so it covers the classified
+    part of the data. Groups need at least min_rows award rows.
+    """
+    rows = with_category(df[df["procurement_type"] == "ETT"])
+    rows = rows[rows["category"] != OTHER]
+    return concentration_by_group(rows, ["agency", "category"], min_awards=min_rows)
