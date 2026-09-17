@@ -18,7 +18,8 @@ OTHER = "other"
 CATEGORY_KEYWORDS: dict[str, list[str]] = {
     "consultancy": [
         "consultancy", "consultant", "consultants", "consulting", "advisory", "quantity surveying",
-        "feasibility study", "professional services",
+        "feasibility study", "audit services", "auditor", "auditors", "legal services",
+        "professional engineering services", "research services",
     ],
     "IT": [
         "software", "ict", "information technology", "it system", "it systems", "server", "servers",
@@ -26,13 +27,17 @@ CATEGORY_KEYWORDS: dict[str, list[str]] = {
         "laptops", "website", "web portal", "portal", "mobile app", "mobile application",
         "application maintenance", "application development", "application support", "erp", "crm",
         "licence", "licences", "license", "licenses", "hosting", "helpdesk", "end user computing",
-        "digital platform", "network infrastructure",
+        "digital platform", "network infrastructure", "subscription", "subscriptions", "analytics",
+        "firewall", "firewalls",
     ],
     "construction": [
         "construction", "erection", "addition and alteration", "addition & alteration", "a&a",
         "upgrading works", "renovation", "redevelopment", "demolition", "civil engineering", "civil works", "piling",
         "tunnel", "tunnels", "viaduct", "drainage", "road works", "building works", "reinstatement works",
         "retrofitting", "retrofit", "interchange", "expressway", "bridge", "footbridge",
+        "design and build", "design & build", "fitting out", "fitting-out", "infrastructure works",
+        "improvement works", "redecoration", "underpass", "underpasses", "linkway", "linkways",
+        "covered walkway", "covered walkways",
     ],
     "cleaning/facilities": [
         "cleaning", "cleansing", "pest control", "horticulture", "arboriculture", "landscape",
@@ -41,7 +46,8 @@ CATEGORY_KEYWORDS: dict[str, list[str]] = {
         "mechanical and electrical", "m&e", "waste", "refuse", "conservancy", "managing agent",
     ],
     "training": [
-        "training", "course", "courses", "coaching", "trainer", "trainers",
+        "training", "course", "courses", "coaching", "trainer", "trainers", "learning programme",
+        "learning experience", "experiential learning", "leadership programme", "instructor", "instructors",
     ],
     "supplies": [
         "supply", "purchase", "procurement of", "equipment", "furniture", "uniform", "uniforms",
