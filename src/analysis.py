@@ -136,16 +136,23 @@ def threshold_window_counts(
 BENFORD_EXPECTED = {d: np.log10(1 + 1 / d) for d in range(1, 10)}
 
 
+def leading_digits(series: pd.Series, n_digits: int = 1) -> pd.Series:
+    """First n significant digits of each positive value; NaN for zero, negative or missing.
+
+    1,234.5 gives 1 (n_digits=1) or 12 (n_digits=2). Digits are read from the
+    number written in scientific notation, which avoids floating-point errors
+    such as 0.3 / 0.1 = 2.9999999999999996. For n_digits=2, apply a floor of 10
+    first: a value such as 5 would otherwise be read as 50.
+    """
+    s = pd.to_numeric(series, errors="coerce")
+    s = s.where(s > 0)
+    text = s.map(lambda x: f"{x:.12e}", na_action="ignore")
+    return pd.to_numeric(text.str.replace(".", "", regex=False).str[:n_digits], errors="coerce")
+
+
 def leading_digit(series: pd.Series) -> pd.Series:
     """First significant digit (1-9) of each positive value; NaN elsewhere."""
-    s = series.astype(float)
-    s = s.where(s > 0)
-    exponent = np.floor(np.log10(s))
-    leading = np.floor(s / (10**exponent))
-    # floating point can push a value just over/under a power of ten
-    leading = leading.where(leading <= 9, 9)
-    leading = leading.where((leading >= 1) | leading.isna(), 1)
-    return leading
+    return leading_digits(series, 1)
 
 
 def benford_test(series: pd.Series, min_amount: float = 0) -> dict:
