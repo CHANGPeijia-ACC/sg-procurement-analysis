@@ -7,12 +7,20 @@ choosing what to look at, not evidence of irregularity.
 from __future__ import annotations
 
 import pandas as pd
+from scipy import stats
 
-from analysis import concentration_by_group
+from analysis import aggregate_by_tender, concentration_by_group
 from categories import OTHER, classify_descriptions
 
 INCUMBENT_MIN_YEARS = 4
 INCUMBENT_MIN_SHARE = 0.10
+
+# Tender Lite (MOF): tenders with estimated value up to S$1 million, for
+# general goods and services called from end April 2024 and construction
+# from May 2025; ICT only from April 2026, after the data ends, so IT is a
+# control group and gets the goods/services date as a placebo.
+TENDER_LITE_LIMIT = 1_000_000
+TENDER_LITE_CUTS = {"goods/services": "2024-05-01", "construction": "2025-05-01", "IT (control)": "2024-05-01"}
 
 
 def _is_multiple(amounts: pd.Series, multiple: int) -> pd.Series:
@@ -93,3 +101,41 @@ def category_concentration(df: pd.DataFrame, min_rows: int = 10) -> pd.DataFrame
     rows = with_category(df[df["procurement_type"] == "ETT"])
     rows = rows[rows["category"] != OTHER]
     return concentration_by_group(rows, ["agency", "category"], min_awards=min_rows)
+
+
+def tender_lite_comparison(df: pd.DataFrame, window_pct: float = 0.10, buffer_months: int = 6) -> pd.DataFrame:
+    """Tender totals just below vs. just above S$1 million, before and after Tender Lite.
+
+    ETT tenders are grouped as construction, IT (control) or goods/services
+    (every other category, including "other"). "before" is awarded before the
+    cut date; "after" starts buffer_months later, because the data has award
+    dates only and tenders awarded soon after the cut were probably called
+    before it. fisher_p tests whether the after period has a larger share
+    below the line than the before period (one-sided).
+    """
+    tenders = with_category(aggregate_by_tender(df).query("procurement_type == 'ETT'"))
+    tenders["group"] = tenders["category"].map({"construction": "construction", "IT": "IT (control)"}).fillna("goods/services")
+    tenders["award_date"] = pd.to_datetime(tenders["award_date"])
+    lo, hi = TENDER_LITE_LIMIT * (1 - window_pct), TENDER_LITE_LIMIT * (1 + window_pct)
+    near = tenders[tenders["awarded_amt"].between(lo, hi)]
+
+    rows = []
+    for group, cut in TENDER_LITE_CUTS.items():
+        g = near[near["group"] == group]
+        cut = pd.Timestamp(cut)
+        periods = {
+            "before": g[g["award_date"] < cut],
+            "after": g[g["award_date"] >= cut + pd.DateOffset(months=buffer_months)],
+        }
+        counts = {}
+        for period, p in periods.items():
+            below = int((p["awarded_amt"] < TENDER_LITE_LIMIT).sum())
+            above = len(p) - below
+            counts[period] = (below, above)
+            rows.append({"group": group, "cut_date": cut.date(), "period": period, "n_below": below, "n_above": above,
+                         "share_below": below / len(p) if len(p) else float("nan")})
+        (b_below, b_above), (a_below, a_above) = counts["before"], counts["after"]
+        fisher_p = stats.fisher_exact([[a_below, a_above], [b_below, b_above]], alternative="greater").pvalue
+        rows[-1]["fisher_p"] = fisher_p
+        rows[-1]["excluded_buffer"] = len(g) - len(periods["before"]) - len(periods["after"])
+    return pd.DataFrame(rows)
