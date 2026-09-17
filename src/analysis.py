@@ -133,9 +133,6 @@ def threshold_window_counts(
 # 4.3 Benford's law
 # ---------------------------------------------------------------------------
 
-BENFORD_EXPECTED = {d: np.log10(1 + 1 / d) for d in range(1, 10)}
-
-
 def leading_digits(series: pd.Series, n_digits: int = 1) -> pd.Series:
     """First n significant digits of each positive value; NaN for zero, negative or missing.
 
@@ -153,31 +150,6 @@ def leading_digits(series: pd.Series, n_digits: int = 1) -> pd.Series:
 def leading_digit(series: pd.Series) -> pd.Series:
     """First significant digit (1-9) of each positive value; NaN elsewhere."""
     return leading_digits(series, 1)
-
-
-def benford_test(series: pd.Series, min_amount: float = 0) -> dict:
-    """Chi-square goodness-of-fit test of leading digits against Benford's law.
-
-    min_amount: exclude values below this before testing (Benford's law
-    assumes magnitudes spanning several orders of ten; a floor filters out
-    a spike of small round-number transactions that isn't what the law
-    models).
-    """
-    vals = series[series > min_amount]
-    digits = leading_digit(vals).dropna()
-    n = len(digits)
-    observed = digits.value_counts().reindex(range(1, 10), fill_value=0).sort_index()
-    expected_pct = pd.Series(BENFORD_EXPECTED).sort_index()
-    expected_counts = expected_pct * n
-    chi2, p_value = stats.chisquare(f_obs=observed.values, f_exp=expected_counts.values)
-    return {
-        "n": n,
-        "observed_pct": (observed / n * 100).to_dict(),
-        "expected_pct": (expected_pct * 100).to_dict(),
-        "chi2": chi2,
-        "p_value": p_value,
-        "dof": 8,
-    }
 
 
 # Nigrini (2012) MAD conformity bands: (upper limit, label). A MAD exactly on
