@@ -12,6 +12,18 @@ from scipy import stats
 from analysis import aggregate_by_tender, concentration_by_group
 from categories import OTHER, classify_descriptions
 
+# Risk score: one weighted point per red flag on an ETT tender. Edit here.
+RISK_WEIGHTS = {
+    "near_threshold": 0.5,  # weak: no clustering below S$90,000 was found at tender level
+    "round_amount": 1.0,
+    "high_share_incumbent": 1.0,
+    "single_supplier_category": 1.0,
+}
+NEAR_THRESHOLD = 90_000
+NEAR_THRESHOLD_BELOW_PCT = 0.10
+ROUND_MULTIPLE = 10_000
+SINGLE_SUPPLIER_MIN_TENDERS = 3
+
 INCUMBENT_MIN_YEARS = 4
 INCUMBENT_MIN_SHARE = 0.10
 
@@ -139,3 +151,41 @@ def tender_lite_comparison(df: pd.DataFrame, window_pct: float = 0.10, buffer_mo
         rows[-1]["fisher_p"] = fisher_p
         rows[-1]["excluded_buffer"] = len(g) - len(periods["before"]) - len(periods["after"])
     return pd.DataFrame(rows)
+
+
+def risk_scores(df: pd.DataFrame, weights: dict[str, float] = RISK_WEIGHTS) -> pd.DataFrame:
+    """Additive red-flag score for every ETT tender, highest first.
+
+    near_threshold: tender total within NEAR_THRESHOLD_BELOW_PCT below S$90,000.
+    round_amount: tender total is an exact multiple of ROUND_MULTIPLE.
+    high_share_incumbent: an awarded supplier is a flagged pair in incumbency().
+    single_supplier_category: in this agency and category (not "other"), every
+        ETT tender went to one supplier, over at least SINGLE_SUPPLIER_MIN_TENDERS tenders.
+    Ties are ordered by amount, largest first. A sample-selection aid, not a finding.
+    """
+    ett_rows = with_category(df[df["procurement_type"] == "ETT"])
+    tenders = ett_rows.groupby("tender_no").agg(
+        agency=("agency", "first"), category=("category", "first"), award_date=("award_date", "first"),
+        fiscal_year=("fiscal_year", "first"), awarded_amt=("awarded_amt", "sum"),
+        suppliers=("supplier_name", lambda s: "; ".join(sorted(set(s)))),
+    ).reset_index()
+
+    flags = pd.DataFrame(index=tenders.index)
+    lo = NEAR_THRESHOLD * (1 - NEAR_THRESHOLD_BELOW_PCT)
+    flags["near_threshold"] = tenders["awarded_amt"].between(lo, NEAR_THRESHOLD, inclusive="left")
+    flags["round_amount"] = (tenders["awarded_amt"] > 0) & _is_multiple(tenders["awarded_amt"], ROUND_MULTIPLE)
+
+    flagged_pairs = incumbency(df).query("flagged")[["agency", "supplier_name"]]
+    incumbent_tenders = ett_rows.merge(flagged_pairs, on=["agency", "supplier_name"])["tender_no"].unique()
+    flags["high_share_incumbent"] = tenders["tender_no"].isin(incumbent_tenders)
+
+    groups = ett_rows[ett_rows["category"] != OTHER].groupby(["agency", "category"]).agg(
+        n_tenders=("tender_no", "nunique"), n_suppliers=("supplier_name", "nunique")).reset_index()
+    single = groups[(groups["n_suppliers"] == 1) & (groups["n_tenders"] >= SINGLE_SUPPLIER_MIN_TENDERS)]
+    key = list(zip(tenders["agency"], tenders["category"]))
+    flags["single_supplier_category"] = pd.Series(key, index=tenders.index).isin(set(zip(single["agency"], single["category"])))
+
+    out = pd.concat([tenders, flags], axis=1)
+    out["score"] = sum(flags[name].astype(float) * w for name, w in weights.items())
+    out["reasons"] = flags.apply(lambda r: "; ".join(name for name in weights if r[name]), axis=1)
+    return out.sort_values(["score", "awarded_amt"], ascending=False).reset_index(drop=True)
