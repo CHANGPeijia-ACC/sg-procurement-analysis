@@ -7,9 +7,11 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import FuncFormatter
 import pandas as pd
 
 from analysis import (
+    aggregate_by_tender,
     benford_test,
     BENFORD_EXPECTED,
     concentration_by_group,
@@ -23,7 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA_PATH = ROOT / "data" / "processed" / "gebiz_cleaned.csv"
 FIG_DIR = ROOT / "outputs" / "figures"
 
-THRESHOLDS = {"Small Value Purchase limit ($6,000)": 6000, "Quotation -> Tender limit ($90,000)": 90000}
+THRESHOLDS = {"Tender threshold (S$90,000)": 90000}
 
 
 def fig_concentration(df: pd.DataFrame) -> None:
@@ -52,22 +54,33 @@ def fig_amount_distribution(df: pd.DataFrame) -> None:
         ax.text(t, ax.get_ylim()[1] * 0.6, f" {label}", rotation=90, fontsize=8, color="#dc2626", va="top")
     ax.set_xlabel("Awarded amount (S$, log scale)")
     ax.set_ylabel("Number of awards (log scale)")
-    ax.set_title("Distribution of award amounts vs. approval thresholds")
+    ax.set_title("Distribution of award amounts (row level)")
     fig.savefig(FIG_DIR / "amount_distribution.png")
     plt.close(fig)
 
 
-def fig_threshold_zoom(df: pd.DataFrame, threshold: float, window_pct: float = 0.15, bin_width: float = 3000) -> None:
-    lo, hi = threshold * (1 - window_pct), threshold * (1 + window_pct)
-    vals = df.loc[(df["awarded_amt"] >= lo) & (df["awarded_amt"] <= hi), "awarded_amt"]
+def fig_threshold_zoom(df: pd.DataFrame, threshold: float = 90000, lo: float = 81000, hi: float = 99000, bin_width: float = 1000) -> None:
+    tenders = aggregate_by_tender(df)
+    panels = [
+        ("Row level (award line items)", df),
+        ("Tender level (ETT tenders, summed)", tenders[tenders["procurement_type"] == "ETT"]),
+    ]
     bins = np.arange(lo, hi + bin_width, bin_width)
-    fig, ax = plt.subplots()
-    ax.hist(vals, bins=bins, color="#2563eb", alpha=0.85, edgecolor="white")
-    ax.axvline(threshold, color="#dc2626", linestyle="--", linewidth=1.5, label=f"Threshold = S${threshold:,.0f}")
-    ax.set_xlabel("Awarded amount (S$)")
-    ax.set_ylabel("Number of awards")
-    ax.set_title(f"Award counts within +/-{int(window_pct*100)}% of the S${threshold:,.0f} threshold")
-    ax.legend()
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.8), layout="constrained")
+    for ax, (title, data) in zip(axes, panels):
+        vals = data.loc[(data["awarded_amt"] >= lo) & (data["awarded_amt"] < hi), "awarded_amt"]
+        ax.hist(vals, bins=bins, color="#2563eb", alpha=0.85, edgecolor="white")
+        ax.axvline(threshold, color="#dc2626", linestyle="--", linewidth=1.5)
+        w = threshold_window_counts(data, [threshold], window_pct=0.02).iloc[0]
+        ax.set_title(
+            f"{title}\n+/-2% window: {int(w.n_just_below)} below, {int(w.n_just_above)} above, one-sided p = {w.p_more_below:.3f}",
+            fontsize=10,
+        )
+        ax.set_xlabel(r"Awarded amount (S\$, S\$1,000 bins)")
+        ax.set_xticks(np.arange(lo + 1000, hi, 2000))
+        ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{x / 1000:.0f}k"))
+    axes[0].set_ylabel("Count")
+    fig.suptitle(f"Awards near the S${threshold:,.0f} tender threshold (dashed line)", fontsize=12)
     fig.savefig(FIG_DIR / f"threshold_zoom_{int(threshold)}.png")
     plt.close(fig)
 
@@ -127,8 +140,7 @@ if __name__ == "__main__":
 
     fig_concentration(df)
     fig_amount_distribution(df)
-    fig_threshold_zoom(df, 90000, window_pct=0.10, bin_width=1000)
-    fig_threshold_zoom(df, 6000, window_pct=0.15, bin_width=200)
+    fig_threshold_zoom(df)
     fig_benford(df, min_amount=1000)
     fig_yearly_trend(df)
     fig_top_suppliers(df)
