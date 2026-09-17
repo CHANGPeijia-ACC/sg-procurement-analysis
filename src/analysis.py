@@ -79,6 +79,27 @@ def concentration_by_group(
 # 4.2 Amount-threshold clustering
 # ---------------------------------------------------------------------------
 
+TENDER_LEVEL_COLS = ["agency", "award_date", "fiscal_year", "procurement_type", "tender_detail_status", "tender_description"]
+
+
+def aggregate_by_tender(df: pd.DataFrame) -> pd.DataFrame:
+    """One row per tender_no, with awarded_amt summed over its rows.
+
+    Procurement thresholds apply to a whole procurement, not to each awarded
+    line item. The descriptive columns must be constant within a tender;
+    raises otherwise.
+    """
+    g = df.groupby("tender_no")
+    varying = [c for c in TENDER_LEVEL_COLS if (g[c].nunique(dropna=False) > 1).any()]
+    if varying:
+        raise ValueError(f"Columns vary within a tender_no: {varying}")
+    return g.agg(
+        **{c: (c, "first") for c in TENDER_LEVEL_COLS},
+        n_rows=("awarded_amt", "size"),
+        n_suppliers=("supplier_name", "nunique"),
+        awarded_amt=("awarded_amt", "sum"),
+    ).reset_index()
+
 
 def threshold_window_counts(
     df: pd.DataFrame, thresholds: list[float], window_pct: float = 0.10, value_col: str = "awarded_amt"
