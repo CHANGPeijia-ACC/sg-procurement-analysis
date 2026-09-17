@@ -180,6 +180,50 @@ def benford_test(series: pd.Series, min_amount: float = 0) -> dict:
     }
 
 
+# Nigrini (2012) MAD conformity bands: (upper limit, label). A MAD exactly on
+# a limit goes to the better band.
+NIGRINI_BANDS = {
+    1: [(0.006, "close"), (0.012, "acceptable"), (0.015, "marginal"), (np.inf, "nonconformity")],
+    2: [(0.0012, "close"), (0.0018, "acceptable"), (0.0022, "marginal"), (np.inf, "nonconformity")],
+}
+
+
+def nigrini_band(mad: float, digits: int = 1) -> str:
+    return next(label for upper, label in NIGRINI_BANDS[digits] if mad <= upper)
+
+
+def benford_expected(digits: int = 1) -> pd.Series:
+    """Benford proportions for first digits 1-9 (digits=1) or first two digits 10-99 (digits=2)."""
+    first = 10 ** (digits - 1)
+    d = np.arange(first, 10 * first)
+    return pd.Series(np.log10(1 + 1 / d), index=d)
+
+
+def benford_mad(series: pd.Series, digits: int = 1, min_amount: float = 10.0) -> dict:
+    """Benford conformity by mean absolute deviation (MAD), with a chi-square test alongside.
+
+    Uses values >= min_amount. MAD is the average of |observed share -
+    expected share| over the 9 (or 90) digit groups, and does not grow with
+    sample size the way the chi-square statistic does.
+    """
+    values = pd.to_numeric(series, errors="coerce")
+    values = values[values >= min_amount]
+    found = leading_digits(values, digits).dropna().astype(int)
+    expected = benford_expected(digits)
+    counts = found.value_counts().reindex(expected.index, fill_value=0)
+    n = int(counts.sum())
+    if n == 0:
+        raise ValueError("No values at or above min_amount")
+    observed = counts / n
+    mad = float((observed - expected).abs().mean())
+    band = nigrini_band(mad, digits)
+    chi2, p_value = stats.chisquare(counts.to_numpy(), expected.to_numpy() * n)
+    table = pd.DataFrame({"count": counts, "observed": observed, "expected": expected})
+    table.index.name = "digits"
+    return {"digits": digits, "min_amount": min_amount, "n": n, "mad": mad, "band": band,
+            "chi2": float(chi2), "p_value": float(p_value), "table": table}
+
+
 # ---------------------------------------------------------------------------
 # 4.4 Supplier profile & trend
 # ---------------------------------------------------------------------------
