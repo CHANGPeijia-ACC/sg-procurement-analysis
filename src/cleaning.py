@@ -17,6 +17,13 @@ import pandas as pd
 
 NO_AWARD_STATUS = "Awarded to No Suppliers"
 
+# tender_no is 17 characters in one of two shapes:
+#   6-char agency prefix + 3-letter procurement code + 8 digits  (ACR000ETT21000001)
+#   3 letters + 14 digits, no code (interface records)             (HTX00103000020914)
+_TENDER_WITH_CODE = r"^[A-Z0-9]{6}([A-Z]{3})\d{8}$"
+_TENDER_INTERFACE = r"^[A-Z]{3}\d{14}$"
+NO_PROCUREMENT_CODE = "(no code)"
+
 # Suffix spellings that are the same legal form ("private limited company")
 # written differently. Applied after periods have been stripped, so
 # "PTE. LTD." and "PTE LTD." have already collapsed to "PTE LTD" by the time
@@ -77,6 +84,21 @@ def drop_invalid(df: pd.DataFrame, status_col: str = "tender_detail_status") -> 
     return df.loc[mask].reset_index(drop=True)
 
 
+def extract_procurement_type(series: pd.Series) -> pd.Series:
+    """Three-letter procurement code from tender_no (e.g. "ETT").
+
+    Interface records carry no code and get NO_PROCUREMENT_CODE. Any other
+    format raises, so a change in the source data is noticed rather than
+    silently labelled.
+    """
+    s = series.astype(str)
+    code = s.str.extract(_TENDER_WITH_CODE, expand=False)
+    unknown = code.isna() & ~s.str.match(_TENDER_INTERFACE)
+    if unknown.any():
+        raise ValueError(f"Unrecognised tender_no format, e.g. {s[unknown].head(3).tolist()}")
+    return code.fillna(NO_PROCUREMENT_CODE)
+
+
 def clean_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     """Run the full cleaning pipeline used by the analysis notebooks."""
     df = df.copy()
@@ -86,5 +108,6 @@ def clean_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     df["supplier_name"] = normalize_supplier(df["supplier_name"])
     df["awarded_amt"] = clean_amount(df["awarded_amt"])
     df = parse_dates(df)
+    df["procurement_type"] = extract_procurement_type(df["tender_no"])
     df = drop_invalid(df)
     return df
