@@ -18,13 +18,13 @@ from scipy import stats
 # ---------------------------------------------------------------------------
 
 
-def _shares(df: pd.DataFrame, group_cols: list[str], value_col: str, entity_col: str) -> pd.DataFrame:
-    """Per-(group, entity) share of the group total, as a percentage."""
-    totals = df.groupby(group_cols)[value_col].transform("sum")
-    share = np.where(totals > 0, df[value_col] / totals * 100, 0.0)
-    out = df[group_cols + [entity_col]].copy()
-    out["share_pct"] = share
-    return out.groupby(group_cols + [entity_col], as_index=False)["share_pct"].sum()
+def entity_shares(df: pd.DataFrame, group_cols: list[str], value_col: str = "awarded_amt",
+                  entity_col: str = "supplier_name") -> pd.DataFrame:
+    """One row per (group, entity) with its share of the group total, in percent."""
+    totals = df.groupby(group_cols + [entity_col])[value_col].sum().reset_index()
+    group_totals = totals.groupby(group_cols)[value_col].transform("sum")
+    totals["share_pct"] = np.where(group_totals > 0, totals[value_col] / group_totals * 100, 0.0)
+    return totals
 
 
 def hhi(df: pd.DataFrame, group_cols: list[str], value_col: str = "awarded_amt", entity_col: str = "supplier_name") -> pd.DataFrame:
@@ -35,9 +35,7 @@ def hhi(df: pd.DataFrame, group_cols: list[str], value_col: str = "awarded_amt",
     column). 10,000 = single-supplier monopoly; below ~1,500 is considered
     unconcentrated by common (US DOJ) rule-of-thumb bands.
     """
-    entity_totals = df.groupby(group_cols + [entity_col])[value_col].sum().reset_index()
-    group_totals = entity_totals.groupby(group_cols)[value_col].transform("sum")
-    entity_totals["share_pct"] = np.where(group_totals > 0, entity_totals[value_col] / group_totals * 100, 0.0)
+    entity_totals = entity_shares(df, group_cols, value_col, entity_col)
     result = (
         entity_totals.groupby(group_cols)
         .agg(hhi=("share_pct", lambda s: (s**2).sum()), n_suppliers=(entity_col, "nunique"), total=(value_col, "sum"))
@@ -48,9 +46,7 @@ def hhi(df: pd.DataFrame, group_cols: list[str], value_col: str = "awarded_amt",
 
 def cr4(df: pd.DataFrame, group_cols: list[str], value_col: str = "awarded_amt", entity_col: str = "supplier_name") -> pd.DataFrame:
     """Combined market share (%) of the top 4 suppliers per group."""
-    entity_totals = df.groupby(group_cols + [entity_col])[value_col].sum().reset_index()
-    group_totals = entity_totals.groupby(group_cols)[value_col].transform("sum")
-    entity_totals["share_pct"] = np.where(group_totals > 0, entity_totals[value_col] / group_totals * 100, 0.0)
+    entity_totals = entity_shares(df, group_cols, value_col, entity_col)
 
     def top4_share(g: pd.DataFrame) -> float:
         return g["share_pct"].nlargest(4).sum()
