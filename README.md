@@ -32,7 +32,7 @@ Across 16,057 row-level amounts of at least S$10, the first-digit MAD is 0.00221
 
 ![First two digits vs Benford's law](outputs/figures/benford_two_digits.png)
 
-**4. The 10 largest suppliers by dollar value are all construction/engineering firms**, each with only 2–19 awards but S$1.4B–S$3.5B in cumulative value — consistent with a handful of infrastructure megaprojects dominating total spend, not systemic favoritism across procurement in general.
+**4. The 10 largest suppliers by dollar value are all construction/engineering firms**, each with only 2–19 awards but S$1.4B–S$3.5B in cumulative value — consistent with a handful of infrastructure megaprojects dominating total spend, not systemic favoritism across procurement in general. This started as a reading of company names; classifying their tenders supports it for 9 of the 10, while the tenth has 76% of its amount under "other" because its two tender descriptions match no construction keyword.
 
 ![Top 10 suppliers](outputs/figures/top_suppliers.png)
 
@@ -41,6 +41,18 @@ Across 16,057 row-level amounts of at least S$10, the first-digit MAD is 0.00221
 ![Yearly trend](outputs/figures/yearly_trend.png)
 
 Full analysis, code, and interpretation: [`notebooks/01_procurement_analysis.ipynb`](notebooks/01_procurement_analysis.ipynb).
+
+## Audit tests
+
+Five screening tests, run in [`notebooks/02_audit_tests.ipynb`](notebooks/02_audit_tests.ipynb) with the code in [`src/audit_tests.py`](src/audit_tests.py). They are for deciding where to look; none of them shows that anything is wrong, and none of the results identifies any agency or supplier as a concern.
+
+- **Round numbers.** 19.3% of award amounts of at least S$10 are exact multiples of S$1,000 and 7.1% are multiples of S$10,000 (tender totals: 21.6% and 8.8%). Across the 18 agencies with at least 300 such amounts, the S$1,000 share runs from 5.5% to 33.5%. Budgets, rate schedules and price lists all produce round amounts, so a high share is a question about how prices are set.
+- **Long-running supply relationships.** 8 of 11,890 agency–supplier pairs appear in at least 4 of the 5 fiscal years and hold at least 10% of that agency's spend, across 7 agencies; the largest holds 73.1%. Most relationships are brief: 8,982 pairs appear in a single fiscal year. Multi-year term contracts produce this pattern by design.
+- **Categories.** A keyword dictionary ([`src/categories.py`](src/categories.py)) labels each tender as consultancy, IT, construction, cleaning/facilities, training, supplies or "other". 37.4% stay "other". Construction is 11.4% of tenders but 57.8% of the awarded amount; consultancy, IT and training together are 22.4% of tenders and 5.2% of the amount.
+- **Concentration inside categories.** Among the 215 agency × category groups with at least 10 award rows, 87 have HHI above 2,500 and 18 above 5,000. The median is highest for IT (2,844) and lowest for training (1,652). Concentration within a narrow category is easier to interpret than the agency-level figure in Finding 1, though specialised work often has few able suppliers.
+- **Tender Lite at S$1 million.** No effect visible. For general goods and services, the share of tenders just below S$1 million moved from 61.3% to 67.1% after the rule started (one-sided Fisher p = 0.238); the IT control group, which the rule does not reach until after this data ends, moved the same way (55.6% to 77.8%, p = 0.244). Construction has only 2 tenders after its own start date. Awards in the six months after each start date are excluded, because the data records award dates and not the date a tender was called.
+
+**Audit sample.** [`outputs/audit_sample.csv`](outputs/audit_sample.csv) holds the 50 highest-scoring tenders with the reasons for each. Flags: round amount (925 tenders), high-share incumbent (60), dominant supplier in an agency category (30), and near-threshold at half weight (142), which is weighted down because Finding 2 found no clustering below S$90,000. Only 14 tenders trip two flags and none trips three, so the list is those 14 followed by 36 single-flag tenders ordered by size. It is a sample-selection aid, not a ranking of risk.
 
 ## Data cleaning
 
@@ -71,6 +83,8 @@ The Benford finding previously attributed the failure on the full dataset to sma
 - **Supplier concentration here is a lower bound.** Normalization is deliberately conservative — it fixes known formatting variants but does not attempt fuzzy matching, so any supplier-name variant it didn't catch (typos, unusual formatting) still splits that supplier's awards across two names, understating their true concentration. It never overstates concentration, because it never merges distinct entities.
 - **Whole-of-government metrics are not meaningful.** Every concentration number should be read at the agency (or ideally procurement-category) level; a single national figure mixes incomparable procurement types.
 - **Screening signals are not evidence.** A threshold excess or a Benford deviation can have ordinary explanations (budgets set at round numbers; small transactions that do not fit Benford's assumptions). These tests show where a closer look might be worthwhile; they do not establish that any award was improperly structured.
+- **Category labels are keyword guesses.** 37.4% of tenders match no keyword, and spot-checks of 80 tenders found labels that are wrong in both directions: facility management at a data centre lands in IT, and a finance-system tender lands in cleaning/facilities because its description mentions maintenance. Category results are directional.
+- **The risk score is not validated.** The weights are set by hand, there is nothing to test them against, and the flags fire very unevenly, so the score separates tenders only weakly.
 - **Awarded amount is not estimated value.** Procurement thresholds apply to estimated value excluding GST. The data has awarded amounts only, and whether they include GST is not stated. 1,782 of 10,909 ETT tenders (16.3%) were awarded at or below S$90,000.
 - **Coverage is not fully documented.** MOF lists several tender types (open, selective, limited, innovative procurement partnership); the dataset page mentions open tenders only. The 504 interface-record tenders (686 rows) carry no procurement code, their nature is not documented, and they are excluded from the threshold test.
 - **No ground truth for "correct" supplier identity.** Individuals/sole proprietors, foreign entities, and unregistered trade names (13.9% of rows) have no company-registration suffix to normalize against; two individuals who are actually the same person under slightly different name spellings would not be merged.
