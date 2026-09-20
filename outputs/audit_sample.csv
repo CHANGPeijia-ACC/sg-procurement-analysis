@@ -1,0 +1,51 @@
+tender_no,agency,category,award_date,fiscal_year,awarded_amt,suppliers,near_threshold,round_amount,high_share_incumbent,dominant_supplier_category,score,reasons
+NHB000ETT22000015,National Heritage Board,construction,2024-02-15,FY2023,235660000.0,KIM SENG HENG ENGINEERING CONSTRUCTION PTE LTD,False,True,False,True,2.0,round_amount; dominant_supplier_category
+FINCEDETT21000007,Ministry of Finance - Singapore Customs,cleaning/facilities,2022-07-05,FY2022,96071377.0,NCS PTE LTD,False,False,True,True,2.0,high_share_incumbent; dominant_supplier_category
+MOE000ETT25000018,Ministry of Education,training,2025-09-01,FY2025,83800000.0,KIM HUA CONSTRUCTION PTE LTD,False,True,False,True,2.0,round_amount; dominant_supplier_category
+FINCEDETT21000004,Ministry of Finance - Singapore Customs,cleaning/facilities,2021-11-27,FY2021,41539168.0,NCS PTE LTD,False,False,True,True,2.0,high_share_incumbent; dominant_supplier_category
+FINCEDETT24000009,Ministry of Finance - Singapore Customs,cleaning/facilities,2025-07-03,FY2025,37257457.0,NCS PTE LTD,False,False,True,True,2.0,high_share_incumbent; dominant_supplier_category
+GVT000ETT21000017,Government Technology Agency (GovTech),cleaning/facilities,2021-10-15,FY2021,31500000.0,NCS PTE LTD,False,True,True,False,2.0,round_amount; high_share_incumbent
+TPO000ETT24000010,Temasek Polytechnic,other,2024-12-23,FY2024,7250000.0,ASA CONTRACTS PTE LTD,False,True,True,False,2.0,round_amount; high_share_incumbent
+TPO000ETT22000007,Temasek Polytechnic,other,2022-06-27,FY2022,5370000.0,ASA CONTRACTS PTE LTD,False,True,True,False,2.0,round_amount; high_share_incumbent
+TPO000ETT24000016,Temasek Polytechnic,other,2025-02-20,FY2024,5320000.0,ASA CONTRACTS PTE LTD,False,True,True,False,2.0,round_amount; high_share_incumbent
+FINCEDETT21000006,Ministry of Finance - Singapore Customs,cleaning/facilities,2022-04-04,FY2022,4868427.0,NCS PTE LTD,False,False,True,True,2.0,high_share_incumbent; dominant_supplier_category
+TPO000ETT23000036,Temasek Polytechnic,IT,2023-12-04,FY2023,2550000.0,AVEPOINT SINGAPORE PTE LTD,False,True,True,False,2.0,round_amount; high_share_incumbent
+TPO000ETT24000005,Temasek Polytechnic,other,2024-07-18,FY2024,2010000.0,ASA CONTRACTS PTE LTD,False,True,True,False,2.0,round_amount; high_share_incumbent
+EMA000ETT24000005,Energy Market Authority of Singapore,consultancy,2024-08-16,FY2024,880000.0,ERNST & YOUNG ADVISORY PTE LTD,False,True,True,False,2.0,round_amount; high_share_incumbent
+EMA000ETT21000016,Energy Market Authority of Singapore,consultancy,2021-08-19,FY2021,630000.0,ERNST & YOUNG ADVISORY PTE LTD,False,True,True,False,2.0,round_amount; high_share_incumbent
+LTA000ETT19300138,Land Transport Authority,construction,2021-05-28,FY2021,1050500000.0,CHINA JINGYE ENGINEERING CORPORATION LIMITED SINGAPORE BRANCH,False,True,False,False,1.0,round_amount
+SSC000ETT24000047,Singapore Sports Council (Sport Singapore),construction,2025-08-26,FY2025,1019543000.0,KAJIMA OVERSEAS ASIA SINGAPORE PTE LTD,False,False,False,True,1.0,dominant_supplier_category
+LTA000ETT20300025,Land Transport Authority,construction,2021-12-16,FY2021,780000000.0,SHANGHAI TUNNEL ENGINEERING CO SINGAPORE PTE LTD,False,True,False,False,1.0,round_amount
+LTA000ETT22000018,Land Transport Authority,construction,2022-12-05,FY2022,758000000.0,OBAYASHI CORPORATION,False,True,False,False,1.0,round_amount
+HDB000ETT23000177,Housing and Development Board,construction,2023-12-29,FY2023,606000000.0,CES ENGINEERING & CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+LTA000ETT23000088,Land Transport Authority,construction,2024-07-30,FY2024,592000000.0,KTC CIVIL ENGINEERING & CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+SCB000ETT23000009,Science Centre Board,construction,2024-03-22,FY2023,576298679.6,OBAYASHI SINGAPORE PTE LTD,False,False,False,True,1.0,dominant_supplier_category
+LTA000ETT23000076,Land Transport Authority,construction,2024-05-27,FY2024,530000000.0,SHANGHAI TUNNEL ENGINEERING CO SINGAPORE PTE LTD,False,True,False,False,1.0,round_amount
+LTA000ETT21000101,Land Transport Authority,construction,2022-12-05,FY2022,495920000.0,WOH HUP PRIVATE LIMITED,False,True,False,False,1.0,round_amount
+LTA000ETT23000004,Land Transport Authority,construction,2024-01-31,FY2023,483000000.0,KTC CIVIL ENGINEERING & CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+NEA000ETT23000138,National Environment Agency,cleaning/facilities,2024-10-24,FY2024,480300724.0,800 SUPER WASTE MANAGEMENT PTE LTD; RE SUSTAINABILITY CLEANTECH PTE LTD,False,False,True,False,1.0,high_share_incumbent
+HDB000ETT24000274,Housing and Development Board,construction,2025-05-05,FY2025,473000000.0,LIM WEN HENG CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+HDB000ETT22000027,Housing and Development Board,construction,2022-07-29,FY2022,467800000.0,QINGJIAN INTERNATIONAL SOUTH PACIFIC GROUP DEVELOPMENT CO PTE LTD,False,True,False,False,1.0,round_amount
+LTA000ETT25000011,Land Transport Authority,construction,2026-02-19,FY2025,450300000.0,SAMWOH CORPORATION PTE LTD,False,True,False,False,1.0,round_amount
+HDB000ETT21000172,Housing and Development Board,construction,2022-02-28,FY2021,448000000.0,LIM WEN HENG CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+LTA000ETT20300016,Land Transport Authority,construction,2021-11-08,FY2021,446480000.0,NISHIMATSU CONSTRUCTION CO LTD,False,True,False,False,1.0,round_amount
+LTA000ETT24000082,Land Transport Authority,construction,2025-05-29,FY2025,436800000.0,SHINRYO CORPORATION,False,True,False,False,1.0,round_amount
+HDB000ETT23000316,Housing and Development Board,construction,2024-05-31,FY2024,427000000.0,TEAMBUILD ENGINEERING & CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+NEA000ETT24000067,National Environment Agency,cleaning/facilities,2025-06-22,FY2025,412262400.0,800 SUPER WASTE MANAGEMENT PTE LTD,False,False,True,False,1.0,high_share_incumbent
+HDB000ETT21000051,Housing and Development Board,construction,2021-08-31,FY2021,411380000.0,NEWCON BUILDERS PTE LTD,False,True,False,False,1.0,round_amount
+HDB000ETT23000144,Housing and Development Board,construction,2023-11-30,FY2023,410680000.0,CES ENGINEERING & CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+LTA000ETT24000008,Land Transport Authority,other,2025-05-23,FY2025,387000000.0,KTC CIVIL ENGINEERING & CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+LTA000ETT23000086,Land Transport Authority,other,2024-09-26,FY2024,385700000.0,GAMMON PTE LTD,False,True,False,False,1.0,round_amount
+LTA000ETT20300051,Land Transport Authority,construction,2022-05-30,FY2022,372600000.0,HWA SENG BUILDER PTE LTD,False,True,False,False,1.0,round_amount
+HDB000ETT24000127,Housing and Development Board,construction,2024-11-29,FY2024,368000000.0,LS CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+LTA000ETT20300031,Land Transport Authority,construction,2022-02-07,FY2021,363600000.0,SINGAPORE ENGINEERING & CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+HDB000ETT23000145,Housing and Development Board,construction,2023-11-30,FY2023,359700000.0,CHANG HUA CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+HDB000ETT20300235,Housing and Development Board,construction,2021-04-30,FY2021,340000000.0,QINGJIAN INTERNATIONAL SOUTH PACIFIC GROUP DEVELOPMENT CO PTE LTD,False,True,False,False,1.0,round_amount
+HDB000ETT24000143,Housing and Development Board,construction,2024-12-31,FY2024,332600000.0,WELLTECH CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+HDB000ETT21000148,Housing and Development Board,construction,2022-01-31,FY2021,327000000.0,HI-TEK CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+LTA000ETT20300002,Land Transport Authority,construction,2021-11-08,FY2021,320000000.0,HOCK LIAN SENG INFRASTRUCTURE PTE LTD,False,True,False,False,1.0,round_amount
+MOE000ETT24000117,Ministry of Education,construction,2025-07-01,FY2025,314750000.0,CHINA CONSTRUCTION SOUTH PACIFIC DEVELOPMENT CO PTE LTD,False,True,False,False,1.0,round_amount
+HDB000ETT24000217,Housing and Development Board,construction,2025-02-28,FY2024,310380000.0,NEWCON BUILDERS PTE LTD,False,True,False,False,1.0,round_amount
+HDB000ETT23000233,Housing and Development Board,construction,2024-02-29,FY2023,307800000.0,JIA YI CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+NATHQ0ETT22000008,Ministry of National Development-Ministry Headquarter,other,2023-09-22,FY2023,304500000.0,SANTARLI CONSTRUCTION PTE LTD,False,True,False,False,1.0,round_amount
+SLA000ETT22000010,Singapore Land Authority,construction,2023-11-24,FY2023,303392072.0,RICH CONSTRUCTION COMPANY PTE LTD,False,False,False,True,1.0,dominant_supplier_category
