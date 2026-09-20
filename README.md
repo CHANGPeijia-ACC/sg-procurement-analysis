@@ -6,7 +6,7 @@ deviations that would be worth flagging for a closer procurement audit?
 
 ## Data
 
-- **Source:** [data.gov.sg — Government Procurement via GeBIZ](https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view) (Ministry of Finance), Open Data Licence
+- **Source:** [data.gov.sg — Government Procurement via GeBIZ](https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view) (Ministry of Finance), Open Data Licence. Downloaded 14 September 2026; a re-download on 17 September 2026 was byte-identical
 - **Scale:** 18,464 award records, 7 columns (`tender_no`, `tender_description`, `agency`, `award_date`, `tender_detail_status`, `supplier_name`, `awarded_amt`) across **113 agencies** and **6,152 raw supplier-name strings**
 - **Time span:** exactly **FY2021 – FY2025** (1 Apr 2021 – 31 Mar 2026, Singapore fiscal year). This is a rolling 5-year window data.gov.sg publishes, **not** a full historical archive — see [Limitations](#limitations)
 - **Scope:** the dataset page describes the data as the open tenders called by government agencies since FY2021. Quotations and small value purchases are not included. Every coded tender number carries the code `ETT` (17,139 rows after cleaning); 686 interface-record rows have no code. No official definition of the code was found.
@@ -91,6 +91,8 @@ The Benford finding previously attributed the failure on the full dataset to sma
 
 ## Reproduction
 
+Developed on Python 3.14.6. `requirements.txt` pins the versions that produced the committed outputs.
+
 ```bash
 git clone <this-repo>
 cd sg-procurement-analysis
@@ -98,16 +100,10 @@ python -m venv .venv
 source .venv/Scripts/activate   # Windows Git Bash; use .venv/bin/activate on macOS/Linux
 pip install -r requirements.txt
 
-python src/download.py          # fetch raw data -> data/raw/
-python src/explore.py           # structural profile of the raw data
-python -c "import sys; sys.path.insert(0,'src'); import pandas as pd; from cleaning import clean_pipeline; \
-  df = clean_pipeline(pd.read_csv('data/raw/gebiz_procurement.csv', low_memory=False)); \
-  df.to_csv('data/processed/gebiz_cleaned.csv', index=False)"
-python src/make_figures.py      # regenerate outputs/figures/*.png
-
-jupyter notebook notebooks/01_procurement_analysis.ipynb
+python src/run_pipeline.py      # clean the data, write the tables, rebuild the figures
+pytest tests -q                 # unit tests; they read no data files
 ```
 
-`data/processed/gebiz_cleaned.csv` is committed to the repo, so the notebook
-and figure script can also be run directly without re-downloading or
-re-cleaning.
+`python src/run_pipeline.py --download` fetches a fresh copy of the raw data first. The raw file is not committed, the cleaned data in `data/processed/` is, so a clone reproduces every table and figure without downloading anything. Because the dataset is a rolling window, a later download can change any number in this README.
+
+Notebooks: [`notebooks/01_procurement_analysis.ipynb`](notebooks/01_procurement_analysis.ipynb) for concentration, the threshold test, Benford and trends, and [`notebooks/02_audit_tests.ipynb`](notebooks/02_audit_tests.ipynb) for the audit screening tests. `python src/explore.py` prints a structural profile of the raw file.
