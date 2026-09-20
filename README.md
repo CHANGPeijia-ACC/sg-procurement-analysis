@@ -101,9 +101,12 @@ source .venv/Scripts/activate   # Windows Git Bash; use .venv/bin/activate on ma
 pip install -r requirements.txt
 
 python src/run_pipeline.py      # clean the data, write the tables, rebuild the figures
-pytest tests -q                 # unit tests; they read no data files
+python src/run_sql.py           # the same metrics again, in SQL
+pytest tests -q                 # unit tests, plus the SQL-vs-pandas checks
 ```
 
 `python src/run_pipeline.py --download` fetches a fresh copy of the raw data first. The raw file is not committed, the cleaned data in `data/processed/` is, so a clone reproduces every table and figure without downloading anything. Because the dataset is a rolling window, a later download can change any number in this README.
+
+**SQL layer.** [`sql/`](sql) recomputes four metrics — yearly trend, agency concentration, the S$90,000 threshold windows at tender level, and the largest suppliers — as DuckDB queries that read the cleaned CSV directly. `tests/test_sql.py` compares each one with the matching pandas function, on small hand-made data and on the committed dataset, so an error in either implementation shows up as a mismatch. `python src/run_sql.py --save` also writes the results to `outputs/sql/`.
 
 Notebooks: [`notebooks/01_procurement_analysis.ipynb`](notebooks/01_procurement_analysis.ipynb) for concentration, the threshold test, Benford and trends, and [`notebooks/02_audit_tests.ipynb`](notebooks/02_audit_tests.ipynb) for the audit screening tests. `python src/explore.py` prints a structural profile of the raw file.

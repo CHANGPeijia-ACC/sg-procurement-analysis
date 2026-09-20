@@ -28,6 +28,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# SQL results are reproducible from sql/ and duplicate the pandas outputs
+outputs/sql/
+
 # Project-specific: raw data can be large and is re-downloadable via src/download.py
 data/raw/*
 !data/raw/.gitkeep
