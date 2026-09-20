@@ -139,7 +139,8 @@ def leading_digits(series: pd.Series, n_digits: int = 1) -> pd.Series:
     """
     s = pd.to_numeric(series, errors="coerce")
     s = s.where(s > 0)
-    text = s.map(lambda x: f"{x:.12e}", na_action="ignore")
+    # astype(object) keeps the text operations working when nothing is positive
+    text = s.map(lambda x: f"{x:.12e}", na_action="ignore").astype("object")
     return pd.to_numeric(text.str.replace(".", "", regex=False).str[:n_digits], errors="coerce")
 
 
