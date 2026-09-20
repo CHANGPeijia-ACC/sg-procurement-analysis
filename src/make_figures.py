@@ -149,10 +149,12 @@ def fig_top_suppliers(df: pd.DataFrame) -> None:
     plt.close(fig)
 
 
-if __name__ == "__main__":
+def main(df: pd.DataFrame | None = None) -> None:
+    """Render every figure. Reads the processed CSV when no frame is given."""
     set_style()
     FIG_DIR.mkdir(parents=True, exist_ok=True)
-    df = pd.read_csv(DATA_PATH, low_memory=False)
+    if df is None:
+        df = pd.read_csv(DATA_PATH, low_memory=False)
 
     fig_concentration(df)
     fig_amount_distribution(df)
@@ -162,3 +164,7 @@ if __name__ == "__main__":
     fig_yearly_trend(df)
     fig_top_suppliers(df)
     print(f"Figures written to {FIG_DIR}")
+
+
+if __name__ == "__main__":
+    main()
