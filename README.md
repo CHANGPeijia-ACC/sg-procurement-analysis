@@ -131,6 +131,6 @@ pytest tests -q                 # unit tests, plus the SQL-vs-pandas checks
 
 ### Power BI
 
-A Power BI report reads the award rows from `data/processed/gebiz_cleaned.csv`, one row per tender from [`pbi/tenders.csv`](pbi/tenders.csv) with its category, red flags and risk score, and a date table from [`pbi/dim_date.csv`](pbi/dim_date.csv); `python src/export_powerbi.py` rebuilds the two exports. [`docs/powerbi_measures.md`](docs/powerbi_measures.md) lists thirteen DAX measures, including HHI and CR4, each with the value it should return, and [`docs/powerbi_setup.md`](docs/powerbi_setup.md) covers the import, the relationships and four report pages.
+A Power BI report reads the award rows from `data/processed/gebiz_cleaned.csv`, one row per tender from [`pbi/tenders.csv`](pbi/tenders.csv) with its category, red flags and risk score, and a date table from [`pbi/dim_date.csv`](pbi/dim_date.csv); `python src/export_powerbi.py` rebuilds the two exports. [`docs/powerbi_measures.md`](docs/powerbi_measures.md) lists fourteen DAX measures, including HHI and CR4, each with the value it should return, and [`docs/powerbi_setup.md`](docs/powerbi_setup.md) covers the import, the relationships and four report pages.
 
 Screenshots of the report: to be added.
