@@ -175,9 +175,12 @@ results before trusting them for analysis:
 - **Row count**: 18,464 -> 17,825 after `drop_invalid` (639 "Awarded to No
   Suppliers" rows removed, matching the count found during exploration
   exactly — no unexpected extra drops).
-- **Supplier count**: 6,152 raw distinct spellings -> 6,144 after
-  `normalize_supplier` — a reduction of only 8 names across 7 merged groups.
-  This is intentionally small: the rule only fixes punctuation/case/suffix
+- **Supplier count**: 6,152 raw distinct spellings -> 6,145 after
+  `normalize_supplier`: 7 groups, each merging two spellings, so 14 spellings
+  become 7 names. The cleaned data has 6,144 names because one normalised
+  name appears only in the dropped "Awarded to No Suppliers" rows. (An
+  earlier version of this note said "6,144, a reduction of 8 names", mixing
+  the two effects.) This is intentionally small: the rule only fixes punctuation/case/suffix
   spelling, so it should *not* collapse a large fraction of the supplier
   list. A big drop would have been a red flag for an overly aggressive rule.
 - **Manually checked all 7 merged groups** (not just a sample, since there

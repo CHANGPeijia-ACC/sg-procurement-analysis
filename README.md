@@ -36,7 +36,7 @@ Across 16,057 row-level amounts of at least S$10, the first-digit MAD is 0.00221
 
 ![Top 10 suppliers](outputs/figures/top_suppliers.png)
 
-**5. Total spend rose from ~S$24B (FY2021) to ~S$31B (FY2025) while award count stayed flat** (~3,400–3,800/year) — growth is coming from larger contracts, not more of them.
+**5. Total spend rose from ~S$24B (FY2021) to ~S$31B (FY2025) while award count stayed roughly flat** (3,333–3,810 per year) — growth is coming from larger contracts, not more of them.
 
 ![Yearly trend](outputs/figures/yearly_trend.png)
 
@@ -69,7 +69,7 @@ Full investigation and reasoning: [`notes.md`](notes.md). Summary of what `src/c
 
 - **Drops 639 "Awarded to No Suppliers" rows** — these represent tenders where no award was actually made (all have `awarded_amt == 0`), not real transactions. A separate 4 rows that are legitimately $0 line items inside multi-item term contracts are kept, since dropping on "amount == 0" alone would have discarded real data.
 - **Keeps rows as the unit for concentration and Benford, and uses tenders for the threshold test** — a multi-item tender spans up to 135 rows, one per supplier. Summing rows per `tender_no` is safe here: agency, award date, status and description never vary within a tender, and no supplier appears twice in the same tender.
-- **Normalizes supplier-name punctuation/case/suffix spelling only** (`PTE. LTD.` / `PTE LTD` / `PRIVATE LIMITED` / `PTE. LIMITED` → one canonical `PTE LTD`) — and deliberately does **not** merge names on keyword/substring similarity. Spot checks confirmed this matters: `ACCENTURE SG SERVICES PTE LTD` and `ACCENTURE PTE LTD` are different registered entities, as are the three unrelated companies sharing the word "NCS". This rule only merged 7 groups (8 raw spellings) across all 6,152 supplier names — every one manually verified as a true formatting duplicate.
+- **Normalizes supplier-name punctuation/case/suffix spelling only** (`PTE. LTD.` / `PTE LTD` / `PRIVATE LIMITED` / `PTE. LIMITED` → one canonical `PTE LTD`) — and deliberately does **not** merge names on keyword/substring similarity. Spot checks confirmed this matters: `ACCENTURE SG SERVICES PTE LTD` and `ACCENTURE PTE LTD` are different registered entities, as are the three unrelated companies sharing the word "NCS". This rule merged 14 raw spellings into 7 names (7 groups of two), taking the distinct supplier names from 6,152 to 6,145 — every group manually verified as a true formatting duplicate.
 - **Strips whitespace defects in `agency`** (one agency name carried a literal trailing tab character; 356 rows had a double space) — while deliberately *not* merging agency names that look similar but represent real distinct sub-units (e.g. `Ministry of X` vs `Ministry of X - Y Division`).
 
 **Verification matters more than the code**: see the "Cleaning verification" section of `notes.md` for the before/after supplier counts and the full list of manually-checked merges.
