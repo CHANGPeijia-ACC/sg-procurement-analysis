@@ -54,6 +54,15 @@ Five screening tests, run in [`notebooks/02_audit_tests.ipynb`](notebooks/02_aud
 
 **Audit sample.** [`outputs/audit_sample.csv`](outputs/audit_sample.csv) holds the 50 highest-scoring tenders with the reasons for each. Flags: round amount (925 tenders), high-share incumbent (60), dominant supplier in an agency category (30), and near-threshold at half weight (142), which is weighted down because Finding 2 found no clustering below S$90,000. Only 14 tenders trip two flags and none trips three, so the list is those 14 followed by 36 single-flag tenders ordered by size. It is a sample-selection aid, not a ranking of risk.
 
+## Dashboard (Power BI)
+
+A Power BI report reads the same numbers: award rows from `data/processed/gebiz_cleaned.csv`, one row per tender from [`pbi/tenders.csv`](pbi/tenders.csv) with its category, red flags and risk score, and a date table from [`pbi/dim_date.csv`](pbi/dim_date.csv). `python src/export_powerbi.py` rebuilds both exports.
+
+- [`docs/powerbi_measures.md`](docs/powerbi_measures.md) — thirteen DAX measures, including HHI and CR4, each stated with the value it should return, so a wrong measure shows up at once.
+- [`docs/powerbi_setup.md`](docs/powerbi_setup.md) — the import, the two relationships, the date table, and four report pages.
+
+Screenshots of the report: to be added.
+
 ## Data cleaning
 
 Full investigation and reasoning: [`notes.md`](notes.md). Summary of what `src/cleaning.py` does and why:
